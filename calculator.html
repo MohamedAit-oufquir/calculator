@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        /* Basic styling for the body */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+
+        /* Main container for the calculator */
+        .calculator {
+            width: 320px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            background-color: #fff;
+        }
+
+        /* Display screen for the calculator */
+        .display {
+            width: 100%;
+            height: 60px;
+            margin-bottom: 20px;
+            padding: 10px;
+            font-size: 2em;
+            text-align: right;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Grid container for the buttons */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+        }
+
+        /* Styling for all buttons */
+        button {
+            height: 60px;
+            font-size: 1.5em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        /* Styling for digit and decimal buttons */
+        .digit, .decimal {
+            background-color: #f9f9f9;
+        }
+
+        .digit:hover, .decimal:hover {
+            background-color: #e0e0e0;
+        }
+
+        /* Styling for operator buttons */
+        .operator {
+            background-color: #f0ad4e;
+            color: white;
+        }
+
+        .operator:hover {
+            background-color: #ec971f;
+        }
+
+        /* Styling for the clear button */
+        #clear {
+            background-color: #d9534f;
+            color: white;
+            grid-column: span 2;
+        }
+
+        #clear:hover {
+            background-color: #c9302c;
+        }
+
+        /* Styling for the equals button */
+        #equals {
+            background-color: #5cb85c;
+            color: white;
+            grid-column: span 2;
+        }
+
+        #equals:hover {
+            background-color: #449d44;
+        }
+
+        /* Responsive design for smaller screens */
+        @media (max-width: 400px) {
+            .calculator {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="calculator">
+    <input type="text" id="display" class="display" readonly>
+    <div class="buttons">
+        <!-- Calculator buttons -->
+        <button id="clear" class="clear">C</button>
+        <button class="operator" value="/">/</button>
+        <button class="operator" value="*">*</button>
+        <button class="digit" value="7">7</button>
+        <button class="digit" value="8">8</button>
+        <button class="digit" value="9">9</button>
+        <button class="operator" value="-">-</button>
+        <button class="digit" value="4">4</button>
+        <button class="digit" value="5">5</button>
+        <button class="digit" value="6">6</button>
+        <button class="operator" value="+">+</button>
+        <button class="digit" value="1">1</button>
+        <button class="digit" value="2">2</button>
+        <button class="digit" value="3">3</button>
+        <button id="equals" class="equals">=</button>
+        <button class="digit" value="0" style="grid-column: span 2;">0</button>
+        <button class="decimal" value=".">.</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const display = document.getElementById('display');
+        const buttons = document.querySelector('.buttons');
+
+        let currentInput = '';
+        let operator = '';
+        let previousInput = '';
+
+        /**
+         * Clears the calculator display and resets the internal state.
+         */
+        function clearDisplay() {
+            currentInput = '';
+            operator = '';
+            previousInput = '';
+            display.value = '';
+        }
+
+        /**
+         * Appends a digit or decimal point to the current input.
+         * @param {string} value The digit or decimal to append.
+         */
+        function appendValue(value) {
+            // Prevent multiple decimal points in one number
+            if (value === '.' && currentInput.includes('.')) {
+                return;
+            }
+            currentInput += value;
+            display.value = currentInput;
+        }
+
+        /**
+         * Sets the operator for the calculation.
+         * @param {string} op The operator to use (+, -, *, /).
+         */
+        function setOperator(op) {
+            // If an operator is already set, calculate the intermediate result first
+            if (operator && previousInput && currentInput) {
+                calculateResult();
+            }
+            
+            if (currentInput) {
+                previousInput = currentInput;
+                operator = op;
+                currentInput = '';
+            }
+        }
+
+        /**
+         * Calculates the final result of the expression.
+         */
+        function calculateResult() {
+            if (previousInput === '' || operator === '' || currentInput === '') {
+                return;
+            }
+
+            let result;
+            const prev = parseFloat(previousInput);
+            const curr = parseFloat(currentInput);
+
+            // Perform calculation based on the stored operator
+            switch (operator) {
+                case '+':
+                    result = prev + curr;
+                    break;
+                case '-':
+                    result = prev - curr;
+                    break;
+                case '*':
+                    result = prev * curr;
+                    break;
+                case '/':
+                    // Handle division by zero
+                    if (curr === 0) {
+                        alert("Cannot divide by zero");
+                        clearDisplay();
+                        return;
+                    }
+                    result = prev / curr;
+                    break;
+                default:
+                    return; // Exit if the operator is invalid
+            }
+
+            // Display the result and update the state for subsequent calculations
+            display.value = result;
+            currentInput = result.toString();
+            previousInput = '';
+            operator = '';
+        }
+
+        // --- Event Listener ---
+        // Attaches a single click handler to the buttons container.
+        buttons.addEventListener('click', function(e) {
+            if (!e.target.matches('button')) {
+                return; // Ignore clicks that aren't on a button
+            }
+
+            const target = e.target;
+            const value = target.value;
+
+            if (target.classList.contains('digit') || target.classList.contains('decimal')) {
+                appendValue(value);
+            } else if (target.classList.contains('operator')) {
+                setOperator(value);
+            } else if (target.id === 'clear') {
+                clearDisplay();
+            } else if (target.id === 'equals') {
+                calculateResult();
+            }
+        });
+    });
+</script>
+
+</body>
+</html>
